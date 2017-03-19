@@ -16,8 +16,17 @@ import com.facebook.FacebookSdk;
 import com.facebook.CallbackManager;
 import com.facebook.appevents.AppEventsLogger;
 
+ import android.content.pm.PackageInfo; 
+ import android.content.pm.PackageManager;
+  import android.content.pm.PackageManager.NameNotFoundException;
+   import android.content.pm.Signature;
+    import android.util.Base64; 
+    import android.util.Log;
+    import java.security.MessageDigest ;
+
 import java.util.Arrays;
 import java.util.List;
+    import cn.mandata.react_native_mpchart.MPChartPackage;
 
 public class MainApplication extends Application implements ReactApplication {
 
@@ -37,11 +46,12 @@ public class MainApplication extends Application implements ReactApplication {
     protected List<ReactPackage> getPackages() {
       return Arrays.<ReactPackage>asList(
           new MainReactPackage(),
-            new FBSDKPackage(),
+            new FBSDKPackage(mCallbackManager),
             new RNDeviceInfo(),
             new BackgroundTimerPackage(),
             new VectorIconsPackage(),
-            new RNSoundPackage()
+            new RNSoundPackage(),
+            new MPChartPackage()
       );
     }
   };
@@ -58,5 +68,20 @@ public class MainApplication extends Application implements ReactApplication {
     FacebookSdk.sdkInitialize(getApplicationContext());
     // If you want to use AppEventsLogger to log events.
     AppEventsLogger.activateApp(this);
+
+     try {
+            PackageInfo info = getPackageManager().getPackageInfo(
+                    "com.silencesound", 
+                    PackageManager.GET_SIGNATURES);
+            for (Signature signature : info.signatures) {
+                MessageDigest md = MessageDigest.getInstance("SHA");
+                md.update(signature.toByteArray());
+                Log.d("KeyHashxxxxxxxxxxxxx:", Base64.encodeToString(md.digest(), Base64.DEFAULT));
+                }
+        } catch (NameNotFoundException e) {
+
+        } catch (Exception e) {
+
+        }
   }
 }
