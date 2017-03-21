@@ -12,13 +12,15 @@ const store = configureStore()
 import {
   Button, Icon, SocialIcon 
 } from 'react-native-elements';
+var DeviceInfo = require('react-native-device-info');
 
-const FBSDK = require('react-native-fbsdk');
-const {
-  LoginManager,AccessToken
-} = FBSDK;
+// const FBSDK = require('react-native-fbsdk');
+// const {
+//   LoginManager,AccessToken
+// } = FBSDK;
 
 import {
+  Linking,
   NetInfo,
   StyleSheet,
   Text,
@@ -37,45 +39,45 @@ class SilenceSound extends Component {
 
     Sound.setCategory('Playback', true); // true = mixWithOthers
 
-    this.facebookLogin = () =>{
-      LoginManager.logInWithReadPermissions(['public_profile','email']).then(
-        function(result) {
-          if (result.isCancelled) {
-            alert('Login cancelled');
-          } else {
-            console.log(JSON.stringify(result));
-            AccessToken.getCurrentAccessToken().then(
-              (data) => {
-                console.log(JSON.stringify(data));
-                 fetch('https://graph.facebook.com/v2.5/me?fields=email,name,friends&access_token=' + data.accessToken.toString())
-                  .then((response) => response.json())
-                  .then((json) => {
-                     alert(JSON.stringify(json));  
-                    // Some user object has been set up somewhere, build that user here
-                    var user = new Object();
-                    user.name = json.name
-                    user.id = json.id
-                    user.user_friends = json.friends
-                    user.email = json.email
-                    user.username = json.name
-                    user.loading = false
-                    user.loggedIn = true
-                  // user.avatar = setAvatar(json.id)    
+    // this.facebookLogin = () =>{
+    //   LoginManager.logInWithReadPermissions(['public_profile']).then(
+    //     function(result) {
+    //       if (result.isCancelled) {
+    //         alert('Login cancelled');
+    //       } else {
+    //         console.log(JSON.stringify(result));
+    //         AccessToken.getCurrentAccessToken().then(
+    //           (data) => {
+    //             console.log(JSON.stringify(data));
+    //              fetch('https://graph.facebook.com/v2.5/me?fields=email,name,friends&access_token=' + data.accessToken.toString())
+    //               .then((response) => response.json())
+    //               .then((json) => {
+    //                  alert(JSON.stringify(json));  
+    //                 // Some user object has been set up somewhere, build that user here
+    //                 var user = new Object();
+    //                 user.name = json.name
+    //                 user.id = json.id
+    //                 user.user_friends = json.friends
+    //                 user.email = json.email
+    //                 user.username = json.name
+    //                 user.loading = false
+    //                 user.loggedIn = true
+    //               // user.avatar = setAvatar(json.id)    
                    
-                  })
-                  .catch((error) => {
-                    console.log('Loi nang');
-                    console.log(error);
-                  })
-              }
-            )
-          }
-        },
-        function(error) {
-          alert('Login fail with error: ' + error);
-        }
-      );
-    }
+    //               })
+    //               .catch((error) => {
+    //                 console.log('Loi nang');
+    //                 console.log(error);
+    //               })
+    //           }
+    //         )
+    //       }
+    //     },
+    //     function(error) {
+    //       alert('Login fail with error: ' + error);
+    //     }
+    //   );
+    // }
 
     this.playSoundBundle = debounce(() => {
       if (NetInfo) {
@@ -140,12 +142,16 @@ this.goOffline=() =>{
 }
 
 
-    this.stopSoundBundle = debounce(() => {
+    this.stopSoundBundle = () => {
        this.setState({loopingSound: true});
        BackgroundTimer.clearInterval(this.state.interval);
        time= (new Date().getTime())-this.state.startTime;
        ItemsActions.addItem('stop', time);
-    },1000);
+    };
+
+    this.openLink = () =>{
+      Linking.openURL("https://silencesound-349ab.firebaseapp.com/?id="+DeviceInfo.getUniqueID());
+    }
 
     this.playSoundLooped = () => {
       if (this.state.loopingSound) {
@@ -237,14 +243,17 @@ this.goOffline=() =>{
           { Platform.OS === 'ios' ? this.renderiOSOnlyFeatures() : null }
         </View>
         <View style={styles.bottom}>
-
+         {/*<SocialIcon
+            onPress={this.facebookLogin}
+            type='facebook'
+          />*/}
           <Icon
                     raised
                     name='line-chart'
                     type='font-awesome'
                     color='#FF9000'
                     underlayColor='#378DBE'
-                    onPress={this.stopSoundBundle} />
+                    onPress={this.openLink} />
         </View>
          </View>
       </Provider>

@@ -10,7 +10,7 @@ const firebaseApp = initializeApp({
   databaseURL: config.DATABASE_URL,
   storageBucket: config.STORAGE_BUCKET
 })
-export const itemsRef = firebaseApp.database().ref(DeviceInfo.getUniqueID())
+export const itemsRef = firebaseApp.database().ref(DeviceInfo.getUniqueID()+'/items')
 const connectedRef = firebaseApp.database().ref('.info/connected')
 
 export function syncFirebase(store) {
