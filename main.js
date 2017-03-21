@@ -201,11 +201,11 @@ this.goOffline=() =>{
     };
   }
 
-  renderiOSOnlyFeatures() {
-    return [
-      <Feature key="require" title="Audio via 'require' statement" onPress={this.playSoundFromRequire}/>,
-    ]
-  }
+  // renderiOSOnlyFeatures() {
+  //   return [
+  //     <Feature key="require" title="Audio via 'require' statement" onPress={this.playSoundFromRequire}/>,
+  //   ]
+  // }
 
   render() {
     return (
@@ -240,7 +240,7 @@ this.goOffline=() =>{
                     onPress={this.stopSoundBundle} />
                     
           }
-          { Platform.OS === 'ios' ? this.renderiOSOnlyFeatures() : null }
+          {/*{ Platform.OS === 'ios' ? this.renderiOSOnlyFeatures() : null }*/}
         </View>
         <View style={styles.bottom}>
          {/*<SocialIcon
