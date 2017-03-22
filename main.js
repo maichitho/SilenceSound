@@ -8,6 +8,8 @@ import { connect } from 'react-redux'
 import * as ItemsActions from './src/actions/items'
 var debounce = require('debounce');
 
+var Slider = require('react-native-slider');
+
 const store = configureStore()
 import {
   Button, Icon, SocialIcon 
@@ -29,58 +31,12 @@ import {
   Platform,
 } from 'react-native';
 const Sound = require('react-native-sound');
-
-const requireAudio = require('./bell_sound.mp3');
-
 class SilenceSound extends Component {
 
   constructor(props) {
     super(props);
 
-    Sound.setCategory('Playback', true); // true = mixWithOthers
-
-    // this.facebookLogin = () =>{
-    //   LoginManager.logInWithReadPermissions(['public_profile']).then(
-    //     function(result) {
-    //       if (result.isCancelled) {
-    //         alert('Login cancelled');
-    //       } else {
-    //         console.log(JSON.stringify(result));
-    //         AccessToken.getCurrentAccessToken().then(
-    //           (data) => {
-    //             console.log(JSON.stringify(data));
-    //              fetch('https://graph.facebook.com/v2.5/me?fields=email,name,friends&access_token=' + data.accessToken.toString())
-    //               .then((response) => response.json())
-    //               .then((json) => {
-    //                  alert(JSON.stringify(json));  
-    //                 // Some user object has been set up somewhere, build that user here
-    //                 var user = new Object();
-    //                 user.name = json.name
-    //                 user.id = json.id
-    //                 user.user_friends = json.friends
-    //                 user.email = json.email
-    //                 user.username = json.name
-    //                 user.loading = false
-    //                 user.loggedIn = true
-    //               // user.avatar = setAvatar(json.id)    
-                   
-    //               })
-    //               .catch((error) => {
-    //                 console.log('Loi nang');
-    //                 console.log(error);
-    //               })
-    //           }
-    //         )
-    //       }
-    //     },
-    //     function(error) {
-    //       alert('Login fail with error: ' + error);
-    //     }
-    //   );
-    // }
-
-    this.playSoundBundle = debounce(() => {
-      if (NetInfo) {
+    if (NetInfo) {
           NetInfo.isConnected.fetch().done(isConnected => {
             if (isConnected) {
               this.checkConnection()
@@ -88,10 +44,25 @@ class SilenceSound extends Component {
               this.goOffline()
             }
           })
-        } else {
-          this.checkConnection()
-        }
+    } else {
+      this.checkConnection()
+    }
 
+    Sound.setCategory('Playback', true); // true = mixWithOthers
+    this.state = {
+      loopingSound: true,
+      interval: undefined,
+      startTime: 0,
+      user: undefined,
+      step: 4
+    };
+  }
+
+  componentWillMount = () =>{
+      this.playSoundBundle = debounce(this.playSoundBundle,500);
+  }
+
+  playSoundBundle = () => {
       const s = new Sound('bell_sound.mp3', Sound.MAIN_BUNDLE, (e) => {
         if (e) {
           console.log('error', e);
@@ -102,124 +73,77 @@ class SilenceSound extends Component {
           this.setState({startTime: new Date().getTime()});
           this.state.interval= BackgroundTimer.setInterval(() => {
              s.play(); 
-          }, 4000);
+          }, this.state.step*1000);
           this.setState({loopingSound: false});
-          
         }
-      }, 1000);
+      });
     }
-  );
-this.mapStateToProps =(state) =>{
-  return {
-    onlineItems: state.items.onlineList,
-    offlineItems: state.items.offlineList,
-    connectionChecked: state.items.connectionChecked,
-    connected: state.items.connected
-  }
-}
 
-this.mapDispatchToProps=(dispatch)=> {
-  return bindActionCreators(ItemsActions, dispatch)
-}
-
-this.checkConnection = () =>{
-  return dispatch => {
-    dispatch({type: ItemsActions.CONNECTION_CHECKING})
-    setTimeout(() => dispatch({type: ItemsActions.CONNECTION_CHECKED}), 5000)
-  }
-}
-
-this.goOnline=() =>{
-  return {
-    type: ItemsActions.CONNECTION_ONLINE
-  }
-}
-
-this.goOffline=() =>{
-  return {
-    type: ItemsActions.CONNECTION_OFFLINE
-  }
-}
-
-
-    this.stopSoundBundle = () => {
-       this.setState({loopingSound: true});
+    
+    stopSoundBundle = () => {
        BackgroundTimer.clearInterval(this.state.interval);
        time= (new Date().getTime())-this.state.startTime;
        ItemsActions.addItem('stop', time);
+       this.setState({loopingSound: true});
     };
+    mapStateToProps =(state) =>{
+      return {
+        onlineItems: state.items.onlineList,
+        offlineItems: state.items.offlineList,
+        connectionChecked: state.items.connectionChecked,
+        connected: state.items.connected
+      }
+    }
 
-    this.openLink = () =>{
+    mapDispatchToProps=(dispatch)=> {
+      return bindActionCreators(ItemsActions, dispatch)
+    }
+
+    checkConnection = () =>{
+      return dispatch => {
+        dispatch({type: ItemsActions.CONNECTION_CHECKING})
+        setTimeout(() => dispatch({type: ItemsActions.CONNECTION_CHECKED}), 5000)
+      }
+    }
+
+    goOnline=() =>{
+      return {
+        type: ItemsActions.CONNECTION_ONLINE
+      }
+    }
+
+    goOffline=() =>{
+      return {
+        type: ItemsActions.CONNECTION_OFFLINE
+      }
+    }
+
+
+
+    openLink = () =>{
       Linking.openURL("https://silencesound-349ab.firebaseapp.com/?id="+DeviceInfo.getUniqueID());
     }
-
-    this.playSoundLooped = () => {
-      if (this.state.loopingSound) {
-        return;
-      }
-      const s = new Sound('bell_sound.mp3', Sound.MAIN_BUNDLE, (e) => {
-        if (e) {
-          console.log('error', e);
-        }
-        s.setNumberOfLoops(-1);
-        s.play();
-      });
-      this.setState({loopingSound: s});
-    };
-
-    this.stopSoundLooped = () => {
-      if (!this.state.loopingSound) {
-        return;
-      }
-
-      this.state.loopingSound
-        .stop()
-        .release();
-      this.setState({loopingSound: null});
-    };
-
-    this.playSoundFromRequire = () => {
-      const s = new Sound(requireAudio, (e) => {
-        if (e) {
-          console.log('error', e);
-          return;
-        }
-
-        s.play(() => s.release());
-      });
-    };
-
-    this.initUser = (token) => {
-     
-    }
-
-    this.state = {
-      loopingSound: true,
-      interval: undefined,
-      startTime: 0,
-      user: undefined
-    };
-  }
-
-  // renderiOSOnlyFeatures() {
-  //   return [
-  //     <Feature key="require" title="Audio via 'require' statement" onPress={this.playSoundFromRequire}/>,
-  //   ]
-  // }
 
   render() {
     return (
       <Provider store={store}>
          
         <View style={styles.container}>
-         <View style={styles.header}>
-           <Icon
-                    name='cog'
-                    type='font-awesome'
-                    color='#3351AD'
-                    underlayColor='#378DBE'
-                    onPress={this.stopSoundBundle} />
-        </View>
+          <View style={styles.header}>
+            <Slider
+              value={this.state.step}
+              disabled={!this.state.loopingSound}
+              minimumValue={2}
+              maximumValue={6}
+              step={1}
+              trackStyle={styles.track}
+              thumbStyle={styles.thumb}
+              onValueChange={(step) => this.setState({step})} />
+              <View style={styles.step}>
+                <Text>{this.state.step} s</Text>
+              </View>
+            
+          </View>
         <View style={styles.center}>
           {this.state.loopingSound
             ?
@@ -240,13 +164,8 @@ this.goOffline=() =>{
                     onPress={this.stopSoundBundle} />
                     
           }
-          {/*{ Platform.OS === 'ios' ? this.renderiOSOnlyFeatures() : null }*/}
         </View>
         <View style={styles.bottom}>
-         {/*<SocialIcon
-            onPress={this.facebookLogin}
-            type='facebook'
-          />*/}
           <Icon
                     raised
                     name='line-chart'
@@ -267,14 +186,35 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'column',
     justifyContent: 'space-between',
-    backgroundColor:'#378DBE',
+    backgroundColor:'#005CA1',
     padding: 20,
   },
+    track: {
+      height: 2,
+      borderRadius: 1,
+    },
+    thumb: {
+      width: 18,
+      height: 18,
+      borderRadius: 18 / 2,
+      backgroundColor: 'white',
+      shadowColor: 'black',
+      shadowOffset: {width: 0, height: 2},
+      shadowRadius: 2,
+      shadowOpacity: 0.35,
+      top: 20
+    },
    header: {
+     flex: 1, 
+     alignItems: 'stretch', 
+     justifyContent: 'flex-start'
+
+  },
+  step: {
     flex: 1,
     flexDirection: 'row',
-    justifyContent: 'flex-end',
-    alignItems: 'flex-start',
+    justifyContent: 'center',
+    alignItems: 'flex-start'
   },
   center: {
     flex: 1,

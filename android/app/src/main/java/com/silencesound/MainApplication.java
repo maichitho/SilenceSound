@@ -11,21 +11,12 @@ import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
 import com.facebook.react.shell.MainReactPackage;
 import com.facebook.soloader.SoLoader;
-import com.facebook.appevents.AppEventsLogger;
-
- import android.content.pm.PackageInfo; 
- import android.content.pm.PackageManager;
-  import android.content.pm.PackageManager.NameNotFoundException;
-   import android.content.pm.Signature;
-    import android.util.Base64; 
-    import android.util.Log;
-    import java.security.MessageDigest ;
 
 import java.util.Arrays;
 import java.util.List;
-    import cn.mandata.react_native_mpchart.MPChartPackage;
 
 public class MainApplication extends Application implements ReactApplication {
+
   private final ReactNativeHost mReactNativeHost = new ReactNativeHost(this) {
     @Override
     public boolean getUseDeveloperSupport() {
@@ -54,17 +45,5 @@ public class MainApplication extends Application implements ReactApplication {
     super.onCreate();
     SoLoader.init(this, /* native exopackage */ false);
     // If you want to use AppEventsLogger to log events.
-    AppEventsLogger.activateApp(this);
-
-     try {
-            PackageInfo info = getPackageManager().getPackageInfo(
-                    "com.silencesound", 
-                    PackageManager.GET_SIGNATURES);
-            
-        } catch (NameNotFoundException e) {
-
-        } catch (Exception e) {
-
-        }
   }
 }
